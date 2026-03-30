@@ -1,0 +1,11 @@
+services:
+  karaoke:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:3000"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    container_name: coro-parroquial-sjb

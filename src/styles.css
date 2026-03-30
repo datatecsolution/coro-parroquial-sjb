@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #C9A84C;
+  --color-gold-light: #E8D48B;
+  --color-gold-dark: #8B6914;
+  --color-wine: #5B1A2A;
+  --color-wine-deep: #3A0E1A;
+  --color-wine-light: #7D2840;
+  --color-cream: #F5ECD7;
+  --color-cream-dark: #E8D9B8;
+  --color-highlight: #FFD700;
+  --font-family-cinzel: 'Cinzel', serif;
+  --font-family-playfair: 'Playfair Display', serif;
+  --font-family-lora: 'Lora', Georgia, serif;
+}
+
+/* Base reset */
+* { -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-family-lora);
+  overscroll-behavior: none;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
