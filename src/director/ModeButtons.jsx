@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 
 const modes = [
   { key: 'song', label: 'Cantos', icon: '♫' },
+  { key: 'libre', label: 'Libre', icon: '📖' },
   { key: 'blank', label: 'Blanco', icon: '◻' },
   { key: 'text', label: 'Texto', icon: 'Aa' },
   { key: 'image', label: 'Imagen', icon: '🖼' },
@@ -9,7 +10,7 @@ const modes = [
 
 function ModeButtons({ currentMode, onSelectMode }) {
   return (
-    <div className="grid grid-cols-4 gap-2">
+    <div className="grid grid-cols-5 gap-2">
       {modes.map(m => (
         <button
           key={m.key}

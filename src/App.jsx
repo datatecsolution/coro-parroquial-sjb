@@ -71,6 +71,11 @@ export default function App() {
         })
         .catch(() => {});
     }
+    // In libre mode, don't force song/verse on the choir
+    if (wsState.mode === 'libre') {
+      setActiveVerseIndex(-1);
+      return;
+    }
     if (wsState.mode === 'song') {
       if (wsState.songIndex !== undefined && wsState.songIndex !== currentSongIndex) {
         setCurrentSongIndex(wsState.songIndex);

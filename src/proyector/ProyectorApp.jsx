@@ -73,8 +73,8 @@ export default function ProyectorApp() {
     isDark ? 'bg-black text-white' : 'bg-white text-black'
   }`;
 
-  // Blank mode
-  if (state.mode === 'blank') {
+  // Blank mode or libre mode (projector shows blank)
+  if (state.mode === 'blank' || state.mode === 'libre') {
     return <div className={base} onClick={requestFullscreen} />;
   }
 

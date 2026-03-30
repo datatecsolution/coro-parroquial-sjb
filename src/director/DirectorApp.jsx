@@ -230,6 +230,14 @@ export default function DirectorApp() {
           </div>
         )}
 
+        {state.mode === 'libre' && (
+          <div className="bg-gray-900 rounded-xl p-6 text-center">
+            <p className="text-gray-400 text-4xl mb-2">📖</p>
+            <p className="text-amber-400 font-medium text-sm mb-1">Modo libre activado</p>
+            <p className="text-gray-500 text-xs">El coro puede explorar los cantos libremente.<br/>El proyector muestra pantalla en blanco.</p>
+          </div>
+        )}
+
         {state.mode === 'blank' && (
           <div className="bg-gray-900 rounded-xl p-6 text-center">
             <p className="text-gray-400 text-4xl mb-2">◻</p>

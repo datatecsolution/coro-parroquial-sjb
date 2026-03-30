@@ -1,0 +1,15 @@
+  # -------------------------------------------------------
+  # 7. CORO PARROQUIAL SJB (Proyeccion Liturgica)
+  # -------------------------------------------------------
+  coro-parroquial:
+    build:
+      context: ../coro-parroquial-sjb
+      dockerfile: Dockerfile
+    container_name: coro-parroquial-sjb
+    hostname: coro-parroquial-sjb
+    restart: unless-stopped
+    volumes:
+      - ../coro-parroquial-sjb/data:/app/data
+    environment:
+      - NODE_ENV=production
+      - TZ=America/Tegucigalpa
