@@ -5,6 +5,51 @@ function emptyVerse() {
   return { label: '', lines: [{ text: '', chorus: false }] };
 }
 
+function parseRawLyrics(raw) {
+  const lines = raw.split('\n');
+  const verses = [];
+  let current = null;
+  let isChorus = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    // Blank line: close current verse
+    if (!trimmed) {
+      if (current && current.lines.length > 0) {
+        verses.push(current);
+        current = null;
+        isChorus = false;
+      }
+      continue;
+    }
+
+    // Label line: [Coro], [Estrofa 1], etc.
+    const labelMatch = trimmed.match(/^\[(.+)\]$/);
+    if (labelMatch) {
+      if (current && current.lines.length > 0) {
+        verses.push(current);
+      }
+      const label = labelMatch[1];
+      isChorus = /coro|estribillo/i.test(label);
+      current = { label, lines: [] };
+      continue;
+    }
+
+    // Regular line
+    if (!current) {
+      current = { label: '', lines: [] };
+    }
+    current.lines.push({ text: trimmed, chorus: isChorus });
+  }
+
+  if (current && current.lines.length > 0) {
+    verses.push(current);
+  }
+
+  return verses.length > 0 ? verses : [emptyVerse()];
+}
+
 export default function SongForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -17,6 +62,8 @@ export default function SongForm() {
   const [verses, setVerses] = useState([emptyVerse()]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [showImport, setShowImport] = useState(false);
+  const [rawLyrics, setRawLyrics] = useState('');
 
   useEffect(() => {
     if (isEdit) {
@@ -159,6 +206,58 @@ export default function SongForm() {
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-500"
             />
           </div>
+        </div>
+
+        {/* Import lyrics */}
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowImport(!showImport)}
+            className="text-amber-400 hover:text-amber-300 text-sm font-medium"
+          >
+            {showImport ? '- Cerrar importador' : '+ Importar letra desde texto'}
+          </button>
+
+          {showImport && (
+            <div className="mt-3 bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
+              <p className="text-xs text-gray-400">
+                Pega la letra completa. Usa <code className="text-amber-400">[Estrofa 1]</code>, <code className="text-amber-400">[Coro]</code>, etc. para etiquetar secciones. Separa versos con una linea en blanco. Las lineas bajo <code className="text-amber-400">[Coro]</code> se marcan automaticamente como coro.
+              </p>
+              <textarea
+                value={rawLyrics}
+                onChange={(e) => setRawLyrics(e.target.value)}
+                placeholder={`[Estrofa 1]\nJuntos como hermanos\nmiembros de una iglesia\n\n[Coro]\nVamos caminando\nal encuentro del Senor`}
+                rows={12}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-sm text-gray-100 placeholder-gray-600 font-mono resize-y focus:outline-none focus:border-amber-500"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const parsed = parseRawLyrics(rawLyrics);
+                    setVerses(parsed);
+                    setShowImport(false);
+                    setRawLyrics('');
+                  }}
+                  className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Procesar e importar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const parsed = parseRawLyrics(rawLyrics);
+                    setVerses(prev => [...prev.filter(v => v.lines.some(l => l.text.trim())), ...parsed]);
+                    setShowImport(false);
+                    setRawLyrics('');
+                  }}
+                  className="bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Agregar al final
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Verses editor */}
