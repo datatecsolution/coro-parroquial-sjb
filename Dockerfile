@@ -2,15 +2,16 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies
-COPY package.json ./
-RUN npm install --omit=dev
+# Build tools for native modules (better-sqlite3 must compile from source on Alpine/musl)
+RUN apk add --no-cache python3 make g++
 
-# Install all deps (including devDeps) for build, then prune
+# Install all deps (incl. devDeps) to compile native modules and build the frontend
 COPY package.json ./
 RUN npm install
 COPY . .
 RUN npm run build
+
+# Drop devDeps for a smaller runtime image (compiled better-sqlite3 binary stays)
 RUN npm prune --omit=dev
 
 # Expose port

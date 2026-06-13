@@ -12,6 +12,8 @@ export default function MassForm() {
   const [allSongs, setAllSongs] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [sectionFilter, setSectionFilter] = useState('');
 
   useEffect(() => {
     fetch('/api/songs').then(r => r.json()).then(setAllSongs);
@@ -72,7 +74,26 @@ export default function MassForm() {
   };
 
   const getSongById = (songId) => allSongs.find(s => s.id === songId);
-  const availableSongs = allSongs.filter(s => !selectedSongIds.includes(s.id));
+
+  // Secciones disponibles para el filtro (ordenadas)
+  const sections = [...new Set(allSongs.map(s => s.section).filter(Boolean))].sort();
+
+  // Normaliza para buscar sin acentos ni mayúsculas
+  const normalize = (str) =>
+    (str || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+  const query = normalize(search.trim());
+  const availableSongs = allSongs.filter(s => {
+    if (selectedSongIds.includes(s.id)) return false;
+    if (sectionFilter && s.section !== sectionFilter) return false;
+    if (!query) return true;
+    const haystack = normalize(`${s.title} ${s.author} ${s.section}`);
+    // cada palabra de la búsqueda debe aparecer (búsqueda tipo AND)
+    return query.split(/\s+/).every(word => haystack.includes(word));
+  });
+  // Limita la lista visible para no renderizar miles de filas
+  const VISIBLE_LIMIT = 50;
+  const visibleSongs = availableSongs.slice(0, VISIBLE_LIMIT);
 
   return (
     <div>
@@ -111,21 +132,61 @@ export default function MassForm() {
           </div>
         </div>
 
-        {/* Song selector */}
+        {/* Song selector con búsqueda */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">Agregar cantos</label>
-          <select
-            onChange={(e) => { if (e.target.value) { addSong(Number(e.target.value)); e.target.value = ''; }}}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-gray-100 focus:outline-none focus:border-amber-500"
-            defaultValue=""
-          >
-            <option value="" disabled>Seleccionar canto del catálogo...</option>
-            {availableSongs.map(s => (
-              <option key={s.id} value={s.id}>
-                {s.title} {s.section ? `(${s.section})` : ''} {s.author ? `— ${s.author}` : ''}
-              </option>
-            ))}
-          </select>
+          <div className="flex flex-col sm:flex-row gap-2 mb-2">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar por título, número, autor..."
+              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-500"
+            />
+            <select
+              value={sectionFilter}
+              onChange={(e) => setSectionFilter(e.target.value)}
+              className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-gray-100 focus:outline-none focus:border-amber-500 sm:w-56"
+            >
+              <option value="">Todas las secciones</option>
+              {sections.map(sec => (
+                <option key={sec} value={sec}>{sec}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="border border-gray-700 rounded-lg overflow-hidden">
+            {availableSongs.length === 0 ? (
+              <p className="text-gray-500 text-sm py-6 text-center">
+                {allSongs.length === 0 ? 'Cargando cantos...' : 'No se encontraron cantos.'}
+              </p>
+            ) : (
+              <ul className="max-h-72 overflow-y-auto divide-y divide-gray-800">
+                {visibleSongs.map(s => (
+                  <li key={s.id}>
+                    <button
+                      type="button"
+                      onClick={() => { addSong(s.id); }}
+                      className="w-full text-left px-4 py-2.5 hover:bg-gray-800 transition-colors flex items-center justify-between gap-3 group"
+                    >
+                      <span>
+                        <span className="text-gray-100 text-sm font-medium">{s.title}</span>
+                        <span className="text-gray-500 text-xs block">
+                          {s.section}{s.author ? ` — ${s.author}` : ''}{s.key ? ` | ${s.key}` : ''}
+                        </span>
+                      </span>
+                      <span className="text-amber-500 opacity-0 group-hover:opacity-100 text-lg font-bold shrink-0">+</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          {availableSongs.length > VISIBLE_LIMIT && (
+            <p className="text-gray-500 text-xs mt-1.5">
+              Mostrando {VISIBLE_LIMIT} de {availableSongs.length} resultados. Refina la búsqueda para ver más.
+            </p>
+          )}
         </div>
 
         {/* Selected songs list */}
